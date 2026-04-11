@@ -36,7 +36,7 @@ export async function POST(request: Request) {
             <li><strong>Lead User ID:</strong> ${leadRecord.lead_user_id}</li>
             <li><strong>Status:</strong> ${leadRecord.status}</li>
           </ul>
-          <p><a href="http://localhost:3000/leads" style="background: #06B6D4; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px;">View in CRM</a></p>
+          <p><a href="https://choutuppal-super-app.vercel.app/leads" style="background: #06B6D4; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px;">View in CRM</a></p>
         </div>
       `,
     };
