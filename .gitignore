@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Development tools & Agent-specific data
+.agents/
+skills-lock.json
+PRD.md
+.gemini/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+build/
+.next/
+web-build/
+out/
