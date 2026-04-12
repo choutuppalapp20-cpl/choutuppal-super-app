@@ -10,6 +10,10 @@
     "preview": {
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://ghwgnhupdtbazfitloeg.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdod2duaHVwZHRiYXpmaXRsb2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3OTEwMTQsImV4cCI6MjA5MTM2NzAxNH0.zgXmKfYyIl8TzkkcvjfWwMxLDp0Ob4Mvl3qrUSLsq9U"
       }
     },
     "production": {}
