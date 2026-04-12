@@ -69,11 +69,11 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Protect all routes except /login and /api/lead
   const isLoginPage = request.nextUrl.pathname === '/login'
   const isWebhookApi = request.nextUrl.pathname.startsWith('/api/lead')
+  const isEnvCheckApi = request.nextUrl.pathname.startsWith('/api/env-check')
 
-  if (!user && !isLoginPage && !isWebhookApi) {
+  if (!user && !isLoginPage && !isWebhookApi && !isEnvCheckApi) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
