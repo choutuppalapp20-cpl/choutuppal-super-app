@@ -25,14 +25,27 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [isReady, setIsReady] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    checkOnboarding();
+    checkInitialState();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  async function checkOnboarding() {
+  async function checkInitialState() {
+    // 1. Check Onboarding
     const completed = await hasCompletedOnboarding();
     setShowOnboarding(!completed);
+
+    // 2. Check Auth
+    const { data: { session } } = await supabase.auth.getSession();
+    setIsAuthenticated(!!session);
+
     setIsReady(true);
   }
 
@@ -44,7 +57,7 @@ export default function RootLayout() {
   if (!isReady) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={palette.primary} />
+        <ActivityIndicator size="small" color={palette.primary} />
       </View>
     );
   }
@@ -56,15 +69,24 @@ export default function RootLayout() {
   return (
     <LanguageProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="listing/[id]"
-            options={{
-              headerShown: false,
-              presentation: 'card',
-            }}
-          />
+        <Stack screenOptions={{ headerShown: false }}>
+          {isAuthenticated ? (
+            <>
+              <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
+              <Stack.Screen
+                name="listing/[id]"
+                options={{
+                  presentation: 'modal',
+                  animation: 'slide_from_bottom',
+                }}
+              />
+            </>
+          ) : (
+            <>
+              <Stack.Screen name="(auth)/login" options={{ animation: 'fade' }} />
+              <Stack.Screen name="(auth)/register" options={{ animation: 'slide_from_right' }} />
+            </>
+          )}
         </Stack>
         <StatusBar style="light" />
       </ThemeProvider>

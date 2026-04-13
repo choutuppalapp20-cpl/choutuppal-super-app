@@ -77,7 +77,7 @@ export default function StoriesBar({
               colors={
                 story.isViewed
                   ? [palette.gray400, palette.gray300]
-                  : [palette.accent, palette.primary, palette.primaryDark]
+                  : [palette.primary, palette.accent]
               }
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
@@ -106,14 +106,16 @@ export default function StoriesBar({
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 12,
+    backgroundColor: 'transparent',
   },
   scrollContent: {
     paddingHorizontal: 16,
-    gap: 14,
+    paddingBottom: 4,
+    gap: 12,
   },
   storyWrapper: {
     alignItems: 'center',
-    width: RING_SIZE + 8,
+    width: RING_SIZE + 4,
   },
   storyRing: {
     width: RING_SIZE,
@@ -123,21 +125,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   storyAvatarBorder: {
-    width: STORY_SIZE,
-    height: STORY_SIZE,
-    borderRadius: STORY_SIZE / 2,
-    borderWidth: 3,
+    width: RING_SIZE - 4,
+    height: RING_SIZE - 4,
+    borderRadius: (RING_SIZE - 4) / 2,
+    borderWidth: 2,
     borderColor: palette.gray950,
     overflow: 'hidden',
+    backgroundColor: palette.gray900,
   },
   storyAvatar: {
     width: '100%',
     height: '100%',
-    borderRadius: STORY_SIZE / 2,
   },
   storyName: {
-    fontSize: 11,
-    color: palette.gray400,
+    fontSize: 10,
+    fontWeight: '500',
+    color: palette.gray300,
     marginTop: 6,
     textAlign: 'center',
   },
@@ -145,25 +148,24 @@ const styles = StyleSheet.create({
     width: RING_SIZE,
     height: RING_SIZE,
     borderRadius: RING_SIZE / 2,
-    borderWidth: 2,
-    borderColor: palette.primary,
+    backgroundColor: 'rgba(45, 212, 191, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(45, 212, 191, 0.3)',
     borderStyle: 'dashed',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(6, 182, 212, 0.08)',
   },
   addIconContainer: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: palette.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   addIcon: {
-    fontSize: 18,
+    fontSize: 16,
     color: palette.white,
-    fontWeight: '700',
-    lineHeight: 22,
+    fontWeight: 'bold',
   },
 });

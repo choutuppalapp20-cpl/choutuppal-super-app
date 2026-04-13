@@ -67,7 +67,7 @@ export default function RealEstateCard({
           {/* Premium badge */}
           {listing.isPremium && (
             <View style={styles.premiumBadgeWrapper}>
-              <BlurView intensity={40} tint="dark" style={styles.premiumBadge}>
+              <BlurView intensity={70} tint="dark" style={styles.premiumBadge}>
                 <Text style={styles.premiumBadgeText}>⭐ Premium</Text>
               </BlurView>
             </View>
@@ -75,7 +75,7 @@ export default function RealEstateCard({
 
           {/* Price overlay */}
           <View style={styles.priceOverlay}>
-            <BlurView intensity={60} tint="dark" style={styles.priceBlur}>
+            <BlurView intensity={listing.isPremium ? 80 : 40} tint="dark" style={styles.priceBlur}>
               <Text style={styles.priceText}>{formatPrice(listing.price)}</Text>
             </BlurView>
           </View>
@@ -88,8 +88,8 @@ export default function RealEstateCard({
           </Text>
 
           <View style={styles.metaRow}>
-            <View style={styles.tag}>
-              <Text style={styles.tagText}>
+            <View style={[styles.tag, listing.isPremium && styles.premiumTag]}>
+              <Text style={[styles.tagText, listing.isPremium && styles.premiumTagText]}>
                 {propertyLabel}: {listing.propertyType}
               </Text>
             </View>
@@ -100,15 +100,15 @@ export default function RealEstateCard({
               {listing.description}
             </Text>
           ) : null}
-
-          {/* NO phone number displayed — per PRD requirement */}
-          {/* Contact via "Connect via App" only */}
         </View>
 
-        {/* Glassmorphism overlay for premium */}
+        {/* Heavy Glassmorphism effects ONLY for premium */}
         {listing.isPremium && (
-          <View style={styles.glassOverlay} pointerEvents="none">
-            <View style={styles.glassShine} />
+          <View style={styles.premiumGlassEffect} pointerEvents="none">
+            <LinearGradient
+              colors={['rgba(255,255,255,0.08)', 'transparent']}
+              style={StyleSheet.absoluteFill}
+            />
           </View>
         )}
       </TouchableOpacity>
@@ -119,27 +119,26 @@ export default function RealEstateCard({
 const styles = StyleSheet.create({
   card: {
     width: CARD_WIDTH,
-    backgroundColor: palette.gray900,
-    borderRadius: 20,
+    backgroundColor: palette.gray950,
+    borderRadius: 24,
     overflow: 'hidden',
-    marginBottom: 16,
+    marginBottom: 20,
     borderWidth: 1,
     borderColor: palette.gray800,
-    // Shadow
+    // Subtle shadow
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
+    elevation: 8,
   },
   premiumCard: {
-    borderColor: 'rgba(245, 158, 11, 0.4)',
-    shadowColor: palette.accent,
-    shadowOpacity: 0.2,
+    borderColor: 'rgba(99, 102, 241, 0.4)', // Indigo border for premium
+    backgroundColor: palette.gray900,
   },
   imageContainer: {
     width: '100%',
-    height: 200,
+    height: 220,
     position: 'relative',
   },
   image: {
@@ -152,74 +151,81 @@ const styles = StyleSheet.create({
     left: 12,
     borderRadius: 12,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   premiumBadge: {
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
   premiumBadgeText: {
-    color: palette.accentLight,
-    fontSize: 12,
-    fontWeight: '700',
+    color: '#FCD34D',
+    fontSize: 11,
+    fontWeight: '800',
+    textTransform: 'uppercase',
   },
   priceOverlay: {
     position: 'absolute',
     bottom: 12,
     right: 12,
-    borderRadius: 12,
+    borderRadius: 14,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   priceBlur: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   priceText: {
     color: palette.white,
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 20,
+    fontWeight: '900',
+    letterSpacing: -0.5,
   },
   content: {
-    padding: 16,
+    padding: 20,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 19,
+    fontWeight: '800',
     color: palette.white,
     marginBottom: 8,
+    letterSpacing: -0.3,
   },
   metaRow: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 8,
+    marginBottom: 12,
   },
   tag: {
-    backgroundColor: 'rgba(6, 182, 212, 0.12)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  premiumTag: {
+    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    borderColor: 'rgba(99, 102, 241, 0.2)',
   },
   tagText: {
-    fontSize: 12,
-    color: palette.primaryLight,
-    fontWeight: '600',
+    fontSize: 11,
+    color: palette.gray400,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  premiumTagText: {
+    color: palette.accentLight,
   },
   description: {
     fontSize: 14,
     color: palette.gray400,
-    lineHeight: 20,
+    lineHeight: 22,
   },
-  glassOverlay: {
+  premiumGlassEffect: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  glassShine: {
-    position: 'absolute',
-    top: -60,
-    left: -40,
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    opacity: 0.5,
   },
 });

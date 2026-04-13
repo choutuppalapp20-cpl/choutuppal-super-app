@@ -80,7 +80,7 @@ export default function ConnectViaAppButton({ listingId, lang }: ConnectButtonPr
   }
 
   return (
-    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 16) + 16 }]}>
+    <BlurView intensity={80} tint="dark" style={[styles.container, { paddingBottom: Math.max(insets.bottom, 16) + 12 }]}>
       <AnimatedTouchable
         style={[
           styles.button,
@@ -92,24 +92,24 @@ export default function ConnectViaAppButton({ listingId, lang }: ConnectButtonPr
         disabled={sent || loading}
       >
         {loading ? (
-          <ActivityIndicator color={palette.white} size="small" />
+          <ActivityIndicator color={palette.gray950} size="small" />
         ) : sent ? (
           <>
-            <Text style={styles.checkmark}>✓</Text>
+            <Ionicons name="checkmark-circle" size={20} color={palette.white} />
             <Text style={styles.buttonText}>
               {t('realestate.lead_sent', lang)}
             </Text>
           </>
         ) : (
           <>
-            <Text style={styles.phoneIcon}>📲</Text>
+            <Ionicons name="chatbubbles" size={20} color={palette.gray950} />
             <Text style={styles.buttonText}>
               {t('realestate.connect', lang)}
             </Text>
           </>
         )}
       </AnimatedTouchable>
-    </View>
+    </BlurView>
   );
 }
 
@@ -119,43 +119,35 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 16,
-    paddingBottom: 32,
+    paddingHorizontal: 20,
     paddingTop: 16,
-    backgroundColor: 'rgba(10, 15, 26, 0.95)',
     borderTopWidth: 1,
-    borderTopColor: palette.gray800,
+    borderColor: 'rgba(255,255,255,0.05)',
+    overflow: 'hidden',
   },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: palette.primary,
-    paddingVertical: 16,
-    borderRadius: 16,
-    gap: 8,
-    // Shadow
+    height: 60,
+    borderRadius: 20,
+    gap: 10,
+    // Premium soft shadow
     shadowColor: palette.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
     elevation: 8,
   },
   buttonSent: {
-    backgroundColor: palette.success,
-    shadowColor: palette.success,
+    backgroundColor: '#10B981',
+    shadowColor: '#10B981',
   },
   buttonText: {
-    color: palette.white,
+    color: palette.gray950,
     fontSize: 16,
-    fontWeight: '700',
-  },
-  phoneIcon: {
-    fontSize: 20,
-  },
-  checkmark: {
-    fontSize: 20,
-    color: palette.white,
-    fontWeight: '700',
+    fontWeight: '900',
+    letterSpacing: -0.2,
   },
 });

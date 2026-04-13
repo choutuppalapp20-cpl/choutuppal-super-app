@@ -4,15 +4,15 @@
  */
 
 export const palette = {
-  // Primary brand — vivid teal-cyan gradient
-  primary: '#06B6D4',
-  primaryDark: '#0891B2',
-  primaryLight: '#67E8F9',
+  // Primary brand — Mint/Teal from Stitch design
+  primary: '#2DD4BF',
+  primaryDark: '#0D9488',
+  primaryLight: '#99F6E4',
 
-  // Accent — warm amber for CTAs
-  accent: '#F59E0B',
-  accentDark: '#D97706',
-  accentLight: '#FCD34D',
+  // Accent — Premium Indigo
+  accent: '#6366F1',
+  accentDark: '#4F46E5',
+  accentLight: '#A5B4FC',
 
   // Success / Error / Warning
   success: '#10B981',
