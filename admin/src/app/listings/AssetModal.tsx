@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClientBrowser } from '@/lib/supabase-client'
-import { X, Upload, Loader2, Image as ImageIcon, MapPin, Tag, Info } from 'lucide-react'
+import { X, Upload, Loader2, Tag, Info } from 'lucide-react'
 import { CldUploadWidget } from 'next-cloudinary'
+import { saveListingAction } from './actions'
 
 interface AssetModalProps {
   isOpen: boolean
@@ -23,9 +23,6 @@ export default function AssetModal({ isOpen, onClose, onSave, asset }: AssetModa
     image_urls: [] as string[],
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
-
-  const supabase = createClientBrowser()
 
   useEffect(() => {
     if (asset) {
@@ -50,26 +47,17 @@ export default function AssetModal({ isOpen, onClose, onSave, asset }: AssetModa
     }
   }, [asset, isOpen])
 
-  useEffect(() => {
-    async function getUserId() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) setCurrentUserId(user.id)
-    }
-    getUserId()
-  }, [])
-
   if (!isOpen) return null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
 
-    const table = type === 'Real Estate' ? 'real_estate_listings' : 'listings'
     const payload: any = {
       title: formData.title,
       description: formData.description,
       image_urls: formData.image_urls,
-      status: asset?.status || 'approved', // Admin manual additions are auto-approved usually
+      status: asset?.status || 'approved',
     }
 
     if (type === 'Real Estate') {
@@ -79,33 +67,22 @@ export default function AssetModal({ isOpen, onClose, onSave, asset }: AssetModa
       payload.category = formData.category
     }
 
-    if (!asset) {
-      // New record
-      payload.owner_id = currentUserId || '00000000-0000-0000-0000-000000000000' // Fallback
-    }
+    console.log('Deploying asset to server...', { type, assetId: asset?.id, payload })
 
     try {
-      let result
-      if (asset) {
-        result = await supabase
-          .from(table)
-          .update(payload)
-          .eq('id', asset.id)
-          .select('*, owner:users(full_name)')
-          .single()
-      } else {
-        result = await supabase
-          .from(table)
-          .insert(payload)
-          .select('*, owner:users(full_name)')
-          .single()
+      const { data, error } = await saveListingAction(payload, type, asset?.id)
+
+      if (error) {
+        console.error('Action failed:', error)
+        alert(`Server error: ${error}`)
+        return
       }
 
-      if (result.error) throw result.error
-      onSave({ ...result.data, type })
+      console.log('Asset successfully deployed:', data)
+      onSave(data)
     } catch (err) {
-      console.error('Error saving asset:', err)
-      alert('Failed to save asset. Check console for details.')
+      console.error('Unexpected UI error during save:', err)
+      alert('An unexpected error occurred in the browser console. See details there.')
     } finally {
       setIsSubmitting(false)
     }
@@ -116,11 +93,10 @@ export default function AssetModal({ isOpen, onClose, onSave, asset }: AssetModa
       <div className="absolute inset-0 bg-gray-950/40 backdrop-blur-sm" onClick={onClose} />
       
       <div className="relative w-full max-w-2xl bg-white rounded-[32px] shadow-2xl overflow-hidden border border-gray-100 animate-in fade-in zoom-in duration-200">
-        {/* Header */}
         <div className="px-8 py-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
           <div>
             <h2 className="text-xl font-black text-gray-900 tracking-tight">
-              {asset ? 'Optimize Existing Asset' : 'Regester New Ecosystem Asset'}
+              {asset ? 'Optimize Existing Asset' : 'Register New Ecosystem Asset'}
             </h2>
             <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Operational Console</p>
           </div>
@@ -130,23 +106,18 @@ export default function AssetModal({ isOpen, onClose, onSave, asset }: AssetModa
         </div>
 
         <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
-          {/* Type Toggle */}
           {!asset && (
             <div className="flex p-1.5 bg-gray-100 rounded-2xl w-fit">
-              <button 
-                type="button"
-                onClick={() => setType('Business/Job')}
-                className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${type === 'Business/Job' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-              >
-                BUSINESS / JOB
-              </button>
-              <button 
-                type="button"
-                onClick={() => setType('Real Estate')}
-                className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${type === 'Real Estate' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-              >
-                REAL ESTATE
-              </button>
+              {['Business/Job', 'Real Estate'].map((t: any) => (
+                <button 
+                  key={t}
+                  type="button"
+                  onClick={() => setType(t)}
+                  className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${type === t ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                  {t.toUpperCase()}
+                </button>
+              ))}
             </div>
           )}
 
@@ -219,7 +190,6 @@ export default function AssetModal({ isOpen, onClose, onSave, asset }: AssetModa
             )}
           </div>
 
-          {/* Image Upload Section */}
           <div className="space-y-4">
              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Visual Assets (Images)</label>
              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -229,7 +199,7 @@ export default function AssetModal({ isOpen, onClose, onSave, asset }: AssetModa
                     <button 
                       type="button"
                       onClick={() => setFormData({...formData, image_urls: formData.image_urls.filter((_, idx) => idx !== i)})}
-                      className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                      className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-group/hover:opacity-100 transition-opacity shadow-lg"
                     >
                       <X size={12} />
                     </button>
@@ -238,10 +208,17 @@ export default function AssetModal({ isOpen, onClose, onSave, asset }: AssetModa
                 
                 <CldUploadWidget 
                   onSuccess={(result: any) => {
+                    console.log('Cloudinary success result:', result);
                     const url = result?.info?.secure_url;
                     if (url) {
                       setFormData(prev => ({...prev, image_urls: [...prev.image_urls, url]}))
+                    } else {
+                      console.warn('No secure_url found in Cloudinary result info. Check response structure.')
                     }
+                  }}
+                  onError={(error) => {
+                    console.error('Cloudinary Widget Error:', error);
+                    alert('Image upload failed. Check the console for Cloudinary details.')
                   }}
                   uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "ml_default"}
                 >
@@ -260,13 +237,8 @@ export default function AssetModal({ isOpen, onClose, onSave, asset }: AssetModa
           </div>
         </form>
 
-        {/* Footer */}
         <div className="px-8 py-6 border-t border-gray-50 flex items-center justify-end gap-3 bg-gray-50/30">
-          <button 
-            type="button"
-            onClick={onClose}
-            className="px-6 py-3 rounded-2xl text-xs font-black text-gray-400 hover:text-gray-600 transition-all"
-          >
+          <button type="button" onClick={onClose} className="px-6 py-3 rounded-2xl text-xs font-black text-gray-400 hover:text-gray-600 transition-all">
             CANCEL REQUEST
           </button>
           <button 
@@ -274,11 +246,7 @@ export default function AssetModal({ isOpen, onClose, onSave, asset }: AssetModa
             disabled={isSubmitting}
             className="bg-brand-dark text-white px-8 py-3 rounded-2xl font-black text-sm hover:shadow-xl active:scale-95 transition-all flex items-center gap-2"
           >
-            {isSubmitting ? (
-              <Loader2 className="animate-spin" size={18} />
-            ) : (
-              'DEPLOY ASSET'
-            )}
+            {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : 'DEPLOY ASSET'}
           </button>
         </div>
       </div>

@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { createClientBrowser } from '@/lib/supabase-client'
 import { 
-  CheckCircle, XCircle, Clock, Edit2, ExternalLink, Search, 
-  Filter, ArrowUpDown, MoreVertical, Plus, LayoutGrid, Trash2 
+  CheckCircle, XCircle, Clock, Edit2, Search, 
+  Filter, ArrowUpDown, Plus, LayoutGrid, Trash2, Loader2 
 } from 'lucide-react'
 import AssetModal from './AssetModal'
+import { updateStatusAction, deleteAssetAction } from './actions'
 
 export default function ListingsManager({ initialListings }: { initialListings: any[] }) {
   const [listings, setListings] = useState(initialListings)
@@ -15,8 +15,6 @@ export default function ListingsManager({ initialListings }: { initialListings: 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingAsset, setEditingAsset] = useState<any>(null)
   const [loadingId, setLoadingId] = useState<string | null>(null)
-
-  const supabase = createClientBrowser()
 
   const filteredListings = useMemo(() => {
     return listings.filter(item => {
@@ -36,22 +34,16 @@ export default function ListingsManager({ initialListings }: { initialListings: 
 
   const handleUpdateStatus = async (id: string, type: string, newStatus: string) => {
     setLoadingId(id)
-    const table = type === 'Real Estate' ? 'real_estate_listings' : 'listings'
-    
     try {
-      const { error } = await supabase
-        .from(table)
-        .update({ status: newStatus })
-        .eq('id', id)
-
-      if (error) throw error
+      const { data, error } = await updateStatusAction(id, type, newStatus)
+      if (error) throw new Error(error)
 
       setListings(prev => prev.map(item => 
         item.id === id ? { ...item, status: newStatus } : item
       ))
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error updating status:', err)
-      alert('Failed to update status')
+      alert(`Status update failed: ${err.message}`)
     } finally {
       setLoadingId(null)
     }
@@ -61,20 +53,14 @@ export default function ListingsManager({ initialListings }: { initialListings: 
     if (!confirm('Are you sure you want to decommission this asset?')) return
     
     setLoadingId(id)
-    const table = type === 'Real Estate' ? 'real_estate_listings' : 'listings'
-    
     try {
-      const { error } = await supabase
-        .from(table)
-        .delete()
-        .eq('id', id)
-
-      if (error) throw error
+      const { success, error } = await deleteAssetAction(id, type)
+      if (!success) throw new Error(error || 'Delete failed')
 
       setListings(prev => prev.filter(item => item.id !== id))
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error deleting asset:', err)
-      alert('Failed to delete asset')
+      alert(`Delete failed: ${err.message}`)
     } finally {
       setLoadingId(null)
     }
@@ -102,13 +88,13 @@ export default function ListingsManager({ initialListings }: { initialListings: 
         </div>
         <div className="flex items-center gap-3">
           <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors" size={18} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-primary transition-colors" size={18} />
             <input 
               type="text" 
               placeholder="Query ecosystem..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-white border border-gray-200/60 rounded-2xl py-3 pl-12 pr-6 text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all w-full md:w-64 font-medium shadow-sm"
+              className="bg-white border border-gray-200/60 rounded-2xl py-3 pl-12 pr-6 text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all w-full md:w-64 font-medium shadow-sm outline-none"
             />
           </div>
           <button className="flex items-center gap-2 bg-brand-dark text-white px-6 py-3 rounded-2xl font-bold text-sm hover:bg-gray-800 transition-all shadow-lg active:scale-95"
@@ -135,7 +121,7 @@ export default function ListingsManager({ initialListings }: { initialListings: 
         ))}
       </div>
 
-      <div className="glass rounded-[32px] overflow-hidden border-white/60 shadow-xl">
+      <div className="glass rounded-[32px] overflow-hidden border-white/60 shadow-xl bg-white/40">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead className="bg-gray-50/50 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">
@@ -148,7 +134,7 @@ export default function ListingsManager({ initialListings }: { initialListings: 
                 <th className="px-8 py-5 text-right">Operational Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50/50 bg-white/40">
+            <tbody className="divide-y divide-gray-50/50">
               {filteredListings.map((listing) => (
                 <tr key={`${listing.id}-${listing.type}`} className="hover:bg-primary/[0.02] transition-colors group">
                   <td className="px-8 py-6">
@@ -174,40 +160,33 @@ export default function ListingsManager({ initialListings }: { initialListings: 
                   </td>
                   <td className="px-6 py-6">
                     <div className="flex items-center gap-2">
-                      {listing.status === 'approved' ? (
-                        <span className="bg-primary/10 text-primary px-3 py-1 rounded-full flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider w-fit">
-                          Live & Active
-                        </span>
-                      ) : listing.status === 'rejected' ? (
-                        <span className="bg-red-50 text-red-500 px-3 py-1 rounded-full flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider w-fit">
-                          Rejected
-                        </span>
-                      ) : (
-                        <span className="bg-orange-50 text-orange-500 px-3 py-1 rounded-full flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider w-fit">
-                          Pending Audit
-                        </span>
-                      )}
+                       <span className={`px-3 py-1 rounded-full flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider w-fit ${
+                        listing.status === 'approved' ? 'bg-primary/10 text-primary' : 
+                        listing.status === 'rejected' ? 'bg-red-50 text-red-500' : 
+                        'bg-orange-50 text-orange-500'
+                      }`}>
+                        {listing.status === 'approved' ? 'Live & Active' : 
+                         listing.status === 'rejected' ? 'Rejected' : 
+                         'Pending Audit'}
+                      </span>
                       
-                      {/* Quick Status Toggles */}
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         {listing.status !== 'approved' && (
                           <button 
                             onClick={() => handleUpdateStatus(listing.id, listing.type, 'approved')}
                             disabled={loadingId === listing.id}
-                            className="p-1 text-primary hover:bg-primary/10 rounded-lg transition-all"
-                            title="Approve"
+                            className="p-1 text-primary hover:bg-primary/10 rounded-lg transition-all disabled:opacity-50"
                           >
-                            <CheckCircle size={14} />
+                            {loadingId === listing.id ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
                           </button>
                         )}
                         {listing.status !== 'rejected' && (
                           <button 
                             onClick={() => handleUpdateStatus(listing.id, listing.type, 'rejected')}
                             disabled={loadingId === listing.id}
-                            className="p-1 text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                            title="Reject"
+                            className="p-1 text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50"
                           >
-                            <XCircle size={14} />
+                            {loadingId === listing.id ? <Loader2 size={14} className="animate-spin" /> : <XCircle size={14} />}
                           </button>
                         )}
                       </div>
@@ -230,9 +209,9 @@ export default function ListingsManager({ initialListings }: { initialListings: 
                       <button 
                         onClick={() => handleDelete(listing.id, listing.type)}
                         disabled={loadingId === listing.id}
-                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all disabled:opacity-50"
                       >
-                        <Trash2 size={16} />
+                        {loadingId === listing.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
                       </button>
                     </div>
                   </td>
