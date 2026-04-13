@@ -1,11 +1,11 @@
-import { createClient } from '@/lib/supabase'
+import { createAdminClient } from '@/lib/supabaseAdmin'
 import { LayoutGrid } from 'lucide-react'
 import ListingsManager from './ListingsManager'
 
 export const dynamic = 'force-dynamic'
 
 export default async function ListingsManagementPage() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // Fetch both regular listings and real estate listings
   const { data: businessListings } = await supabase

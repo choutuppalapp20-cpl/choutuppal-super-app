@@ -31,12 +31,11 @@ async function getOrCreateAdminUser() {
   if (authError) {
     // If user already exists in auth but not in public.users, handle that
     if (authError.message.includes('already registered')) {
-      // We might need to fetch the existing auth user's ID
-      // But for simplicity, we'll try to insert into public.users if we have the ID
-      // However, we don't have the ID here. Let's try to list users.
+      // Fetch the user to get their ID if they already exist in auth
       const { data: users } = await supabase.auth.admin.listUsers()
       const adminAuth = users.users.find(u => u.email === 'admin-system@choutuppal.local')
       if (adminAuth) {
+        // Ensure the public profile exists
         await supabase.from('users').upsert({ id: adminAuth.id, full_name: 'Admin System' })
         return adminAuth.id
       }
